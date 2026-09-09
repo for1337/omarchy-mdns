@@ -1,0 +1,19 @@
+# Quickshell / Omarchy runtime artefacts
+*.log.qslog
+*.log.log
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python (used by Service.qml's flushSeen via execDetached)
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db

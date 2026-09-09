@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "leo.mdns",
+  "name": "mDNS Devices",
+  "version": "1.2.0",
+  "author": "Leonardo (for1337)",
+  "description": "Watches the local network via mDNS/Avahi. Pops a notification when a new device announces itself and lists every device it has seen in a bar panel.",
+  "kinds": [
+    "service",
+    "bar-widget"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "service": "Service.qml",
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "mDNS Devices",
+    "description": "List of devices discovered on the local network via mDNS, with hostname, IP and MAC.",
+    "category": "Network",
+    "allowMultiple": false,
+    "defaults": {
+      "defaultSection": "right"
+    }
+  }
+}
