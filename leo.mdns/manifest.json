@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "id": "leo.mdns",
   "name": "mDNS Devices",
-  "version": "1.2.0",
+  "version": "1.4.0",
   "author": "Leonardo (for1337)",
-  "description": "Watches the local network via mDNS/Avahi. Pops a notification when a new device announces itself and lists every device it has seen in a bar panel.",
+  "description": "Watches the local network via mDNS/Avahi and the kernel ARP neighbour table. Pops a notification when a new device appears and lists every device it has seen in a bar panel.",
   "kinds": [
     "service",
     "bar-widget"

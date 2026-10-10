@@ -1,17 +1,7 @@
 #!/usr/bin/env bash
-# install.sh — install leo.mdns for the current user.
-#
-# Symlinks this repo's `leo.mdns/` folder into `~/.config/omarchy/plugins/`
-# so Quickshell loads it on the next shell start. Edits inside this repo
-# are picked up live after `omarchy restart shell` (or, for bar-widget
-# changes, `omarchy bar move leo.mdns --section <section>`).
-#
-# Run with `--enable` to also enable the plugin and add a bar widget in
-# `~/.config/omarchy/shell.json`. Without flags the script only does the
-# symlink and prints a follow-up hint.
-#
-# Re-running is safe: a pre-existing symlink is replaced; an existing real
-# folder is left alone unless `--force` is passed.
+# install.sh — symlink leo.mdns into ~/.config/omarchy/plugins/.
+# With --enable also adds it to shell.json and places the bar widget.
+# Re-running is safe; pass --force to overwrite a real folder at the target.
 
 set -euo pipefail
 

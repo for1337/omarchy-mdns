@@ -1,13 +1,6 @@
 #!/usr/bin/env bash
-# uninstall.sh — remove leo.mdns from the current user.
-#
-# Removes the symlink at ~/.config/omarchy/plugins/leo.mdns/ and (if jq is
-# available) the plugin entry from ~/.config/omarchy/shell.json. Does NOT
-# touch the device cache at ~/.local/state/omarchy/mdns-devices.json —
-# pass --purge to delete that too.
-#
-# Run after this:
-#     omarchy restart shell
+# uninstall.sh — remove the symlink and the shell.json entry.
+# Pass --purge to also delete ~/.local/state/omarchy/mdns-devices.json.
 
 set -euo pipefail
 

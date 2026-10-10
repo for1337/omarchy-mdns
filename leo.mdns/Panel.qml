@@ -14,16 +14,12 @@ Panel {
   moduleName: "leo.mdns"
   ipcTarget: "leo.mdns"
 
-  // Without these, the loader's "shell" in item check skips injection and
-  // root.bar.shell.serviceFor() returns null — the panel stays empty.
+  // Without these, root.bar.shell.serviceFor() returns null and the panel stays empty.
   property var shell: null
   property var manifest: null
   property var pluginRegistry: null
   property var barWidgetRegistry: null
 
-  // Bar slot collapses to width=0 if the panel (the activeItem) doesn't
-  // forward the BarIconButton's intrinsic size — same trap omarchy.network
-  // hit before this was added.
   implicitWidth: button.implicitWidth
   implicitHeight: button.implicitHeight
 
@@ -46,7 +42,9 @@ Panel {
         mac: d.mac || "",
         firstSeen: d.firstSeen || 0,
         lastSeen: d.lastSeen || 0,
-        services: d.services || []
+        services: d.services || [],
+        source: d.source || "mdns",
+        goneAt: d.goneAt || 0
       })
     }
     list.sort(function(a, b) {
@@ -105,7 +103,7 @@ Panel {
     owner: root
     bar: root.bar
     open: root.opened
-    contentWidth: panel.fittedContentWidth(Style.space(520))
+    contentWidth: panel.fittedContentWidth(Style.space(640))
     contentHeight: panel.fittedContentHeight(column.implicitHeight)
     padding: Style.space(16)
     centerOnBar: true
@@ -145,8 +143,8 @@ Panel {
             }
             Text {
               text: root.deviceCount === 1
-                ? "1 discovered via mDNS"
-                : root.deviceCount + " discovered via mDNS"
+                ? "1 device on the network"
+                : root.deviceCount + " devices on the network"
               color: root.dim
               font.family: root.fontFamily
               font.pixelSize: Style.font.caption
@@ -208,6 +206,14 @@ Panel {
               Layout.preferredWidth: Style.space(90)
             }
             Text {
+              text: "Source"
+              color: root.dim
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.caption
+              font.bold: true
+              Layout.preferredWidth: Style.space(60)
+            }
+            Text {
               text: "Seen"
               color: root.dim
               font.family: root.fontFamily
@@ -221,7 +227,7 @@ Panel {
 
         Rectangle {
           Layout.fillWidth: true
-          Layout.preferredHeight: Math.min(Style.space(360), Style.space(40) + root.rows.length * Style.space(32))
+          Layout.preferredHeight: Math.min(Style.space(360), Style.space(40) + list.contentHeight)
           color: root.surface
           radius: Style.cornerRadius
           border.color: Qt.darker(root.surface, 1.3)
@@ -232,17 +238,20 @@ Panel {
             anchors.fill: parent
             anchors.margins: Style.space(4)
             clip: true
+            currentIndex: -1
             model: root.rows
             spacing: 2
             boundsBehavior: Flickable.StopAtBounds
 
             delegate: Rectangle {
               width: list.width
-              height: Style.space(32)
-              color: ListView.isCurrentItem
-                ? Style.selectedFillFor(root.foreground, Color.accent)
-                : (index % 2 === 0 ? "transparent" : Qt.darker(root.surface, 1.03))
+              height: {
+                var n = modelData.services ? modelData.services.length : 0
+                return Math.max(Style.space(32), Style.space(8) + n * Style.space(14))
+              }
+              color: index % 2 === 0 ? root.surface : Qt.lighter(root.surface, 2.0)
               radius: Style.cornerRadius / 2
+              opacity: modelData.goneAt ? 0.45 : 1.0
 
               RowLayout {
                 anchors.fill: parent
@@ -251,11 +260,12 @@ Panel {
                 spacing: Style.space(8)
 
                 Text {
-                  text: modelData.hostname || "(unnamed)"
+                  text: modelData.hostname || (modelData.goneAt ? "(left)" : "(unnamed)")
                   color: root.foreground
                   font.family: root.fontFamily
                   font.pixelSize: Style.font.bodySmall
                   font.bold: true
+                  font.strikeout: modelData.goneAt > 0
                   elide: Text.ElideRight
                   Layout.preferredWidth: Style.space(140)
                 }
@@ -274,14 +284,45 @@ Panel {
                   elide: Text.ElideRight
                   Layout.preferredWidth: Style.space(140)
                 }
-                Text {
-                  text: modelData.services.length > 0
-                    ? modelData.services.length + " svc."
-                    : "—"
-                  color: modelData.services.length > 0 ? root.foreground : root.dim
-                  font.family: root.fontFamily
-                  font.pixelSize: Style.font.bodySmall
+                Item {
                   Layout.preferredWidth: Style.space(90)
+                  Layout.fillHeight: true
+
+                  Text {
+                    visible: !modelData.services || modelData.services.length === 0
+                    text: "—"
+                    color: root.dim
+                    font.family: root.fontFamily
+                    font.pixelSize: Style.font.bodySmall
+                    anchors.verticalCenter: parent.verticalCenter
+                  }
+
+                  Column {
+                    visible: modelData.services && modelData.services.length > 0
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 0
+                    width: parent.width
+
+                    Repeater {
+                      model: modelData.services
+                      delegate: Text {
+                        text: Mdns.serviceDisplayLine(modelData)
+                        color: root.foreground
+                        font.family: "monospace"
+                        font.pixelSize: Style.font.caption
+                        width: parent.width
+                        elide: Text.ElideRight
+                      }
+                    }
+                  }
+                }
+                Text {
+                  text: (modelData.source || "mdns").toUpperCase()
+                  color: root.dim
+                  font.family: root.fontFamily
+                  font.pixelSize: Style.font.caption
+                  font.bold: true
+                  Layout.preferredWidth: Style.space(60)
                 }
                 Text {
                   text: root.formatRelative(modelData.lastSeen)
@@ -297,7 +338,7 @@ Panel {
             Text {
               anchors.centerIn: parent
               visible: root.rows.length === 0
-              text: "No devices seen yet.\nAvahi is listening on the network."
+              text: "No devices seen yet.\nAvahi and the ARP watcher are listening."
               color: root.dim
               font.family: root.fontFamily
               font.pixelSize: Style.font.bodySmall
